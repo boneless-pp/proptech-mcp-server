@@ -1,0 +1,105 @@
+{
+  "name": "proptech-immobilier-france",
+  "displayName": "PropTech Immobilier France",
+  "description": "20 outils d'analyse immobiliere francaise : transactions DVF (6.7M+), estimation AVM, passoires DPE, prospection off-market, simulation credit/PTZ, renovation energetique, fiche parcelle multi-sources. Le seul MCP immobilier couvrant toute la France.",
+  "version": "1.0.0",
+  "author": "PropTech SaaS",
+  "license": "proprietary",
+  "repository": "https://github.com/boneless-pp/proptech-saas",
+  "homepage": "https://web-production-50ed3.up.railway.app",
+  "tags": [
+    "real-estate",
+    "immobilier",
+    "france",
+    "dvf",
+    "avm",
+    "dpe",
+    "estimation",
+    "investissement",
+    "proptech",
+    "off-market",
+    "renovation",
+    "credit",
+    "ptz",
+    "cadastre",
+    "georisques"
+  ],
+  "categories": ["data", "finance", "real-estate"],
+  "pricing": {
+    "model": "tiered",
+    "currency": "EUR",
+    "tiers": [
+      {
+        "name": "Free",
+        "price": 0,
+        "calls_per_month": 50,
+        "features": ["DVF search", "DPE lookup", "Price stats"]
+      },
+      {
+        "name": "Pro",
+        "price": 29,
+        "calls_per_month": 2000,
+        "features": ["All 20 tools", "AVM estimation", "Off-market signals", "Simulation", "Renovation"]
+      },
+      {
+        "name": "Business",
+        "price": 99,
+        "calls_per_month": 10000,
+        "features": ["All Pro features", "Priority support", "Webhooks", "Custom rate limits"]
+      },
+      {
+        "name": "Enterprise",
+        "price": -1,
+        "calls_per_month": -1,
+        "features": ["Unlimited calls", "SLA 99.9%", "Custom tools", "Dedicated support"]
+      }
+    ]
+  },
+  "transport": {
+    "stdio": true,
+    "streamable_http": true,
+    "default_port": 8080
+  },
+  "requirements": {
+    "python": ">=3.11",
+    "env_vars": [
+      {
+        "name": "PROPTECH_API_BASE",
+        "description": "URL de base de l'API PropTech (ex: https://web-production-50ed3.up.railway.app/api/v1)",
+        "required": true
+      },
+      {
+        "name": "PROPTECH_API_KEY",
+        "description": "Cle API Bearer (format: pt_xxx). Generez-la sur /api/v1/keys",
+        "required": true
+      }
+    ]
+  },
+  "tools_count": 20,
+  "tools_summary": {
+    "read": [
+      "rechercher_transactions_dvf",
+      "estimer_valeur_bien",
+      "predire_evolution_prix",
+      "consulter_statistiques_prix",
+      "rechercher_dpe",
+      "detecter_passoires_dpe",
+      "detecter_signaux_offmarket",
+      "consulter_fiche_parcelle",
+      "evaluer_risques_naturels",
+      "simuler_financement",
+      "estimer_cout_renovation",
+      "lister_biens_portefeuille",
+      "consulter_compte_api"
+    ],
+    "write": [
+      "creer_bien",
+      "modifier_bien",
+      "supprimer_bien",
+      "creer_prospect",
+      "modifier_prospect",
+      "supprimer_prospect",
+      "signaler_bug"
+    ]
+  }
+}
