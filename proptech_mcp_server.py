@@ -638,6 +638,14 @@ async def signaler_bug(params: BugReportParams) -> str:
 
 
 # ════════════════════════════════════════════════════
+# PROMPTS & RESOURCES (workflows immobiliers)
+# ════════════════════════════════════════════════════
+
+import prompts     # noqa: F401 — enregistre les 7 prompts MCP
+import resources   # noqa: F401 — enregistre les 6 resources de reference
+
+
+# ════════════════════════════════════════════════════
 # ENTRYPOINT
 # ════════════════════════════════════════════════════
 
