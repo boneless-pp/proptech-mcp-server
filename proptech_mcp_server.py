@@ -643,6 +643,7 @@ async def signaler_bug(params: BugReportParams) -> str:
 
 import prompts     # noqa: F401 — enregistre les 7 prompts MCP
 import resources   # noqa: F401 — enregistre les 6 resources de reference
+import templates   # noqa: F401 — enregistre les 2 templates (PPTX + Excel)
 
 
 # ════════════════════════════════════════════════════
