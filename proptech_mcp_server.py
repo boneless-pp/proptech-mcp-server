@@ -68,18 +68,49 @@ mcp = FastMCP(
 
 
 # ════════════════════════════════════════════════════
+# RATE LIMITING (simple in-memory, per-tool)
+# ════════════════════════════════════════════════════
+
+import time
+from collections import defaultdict
+
+_call_log: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMIT = int(os.environ.get("MCP_RATE_LIMIT", "30"))  # calls per minute
+_RATE_WINDOW = 60  # seconds
+
+
+def _check_rate_limit(tool_name: str) -> str | None:
+    """Returns error message if rate limited, None otherwise."""
+    now = time.time()
+    window_start = now - _RATE_WINDOW
+    _call_log[tool_name] = [t for t in _call_log[tool_name] if t > window_start]
+    if len(_call_log[tool_name]) >= _RATE_LIMIT:
+        return f"Rate limit atteint ({_RATE_LIMIT} appels/min pour {tool_name}). Reessayez dans quelques secondes."
+    _call_log[tool_name].append(now)
+    return None
+
+
+# ════════════════════════════════════════════════════
 # HELPERS
 # ════════════════════════════════════════════════════
 
-async def _get(path: str, params: dict | None = None) -> dict:
-    """GET vers l'API PropTech avec gestion d'erreurs."""
+async def _get(path: str, params: dict | None = None, tool_name: str = "") -> dict:
+    """GET vers l'API PropTech avec gestion d'erreurs et rate limiting."""
+    if tool_name:
+        rl = _check_rate_limit(tool_name)
+        if rl:
+            return {"error": rl}
     r = await _client.get(path, params={k: v for k, v in (params or {}).items() if v is not None})
     r.raise_for_status()
     return r.json()
 
 
-async def _post(path: str, json_data: dict) -> dict:
-    """POST vers l'API PropTech avec gestion d'erreurs."""
+async def _post(path: str, json_data: dict, tool_name: str = "") -> dict:
+    """POST vers l'API PropTech avec gestion d'erreurs et rate limiting."""
+    if tool_name:
+        rl = _check_rate_limit(tool_name)
+        if rl:
+            return {"error": rl}
     r = await _client.post(path, json={k: v for k, v in json_data.items() if v is not None})
     r.raise_for_status()
     return r.json()
