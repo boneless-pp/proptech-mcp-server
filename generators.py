@@ -180,7 +180,7 @@ def generate_synthese_xlsx(data: dict, output_path: str = "synthese_financiere.x
     for col, w in [('B', 28), ('D', 16), ('I', 28), ('K', 16)]:
         ws2.column_dimensions[col].width = w
 
-    frais_notaire = bilan.get("frais_notaire", round(prix * 0.03))
+    frais_notaire = bilan.get("frais_notaire", round(prix * 0.075))
     travaux = bilan.get("travaux", 0)
     geometre = bilan.get("geometre", 0)
     diagnostics = bilan.get("diagnostics", 0)
@@ -191,7 +191,7 @@ def generate_synthese_xlsx(data: dict, output_path: str = "synthese_financiere.x
     bilan_lignes = [
         ("Prix du bien", prix),
         ("Honoraires d'Agence", honoraires),
-        ("Frais d'acquisition (3%)", frais_notaire),
+        ("Frais d'acquisition (7.5%)", frais_notaire),
         ("Travaux", travaux),
         ("Geometre /Archi", geometre),
         ("Diagnotics & DTG", diagnostics),

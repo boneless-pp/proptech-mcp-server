@@ -116,6 +116,28 @@ async def _post(path: str, json_data: dict, tool_name: str = "") -> dict:
     return r.json()
 
 
+async def _patch(path: str, json_data: dict, tool_name: str = "") -> dict:
+    """PATCH vers l'API PropTech avec gestion d'erreurs et rate limiting."""
+    if tool_name:
+        rl = _check_rate_limit(tool_name)
+        if rl:
+            return {"error": rl}
+    r = await _client.patch(path, json={k: v for k, v in json_data.items() if v is not None})
+    r.raise_for_status()
+    return r.json()
+
+
+async def _delete(path: str, tool_name: str = "") -> dict:
+    """DELETE vers l'API PropTech avec gestion d'erreurs et rate limiting."""
+    if tool_name:
+        rl = _check_rate_limit(tool_name)
+        if rl:
+            return {"error": rl}
+    r = await _client.delete(path)
+    r.raise_for_status()
+    return r.json()
+
+
 def _err(e: Exception) -> str:
     """Formate une erreur pour le LLM."""
     if isinstance(e, httpx.HTTPStatusError):
@@ -214,7 +236,7 @@ async def rechercher_transactions_dvf(params: DVFParams) -> str:
     Retourne : liste de transactions avec adresse, date, prix, surface, type, prix/m2.
     """
     try:
-        data = await _get("/dvf", params.model_dump())
+        data = await _get("/dvf", params.model_dump(), tool_name="rechercher_transactions_dvf")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -234,7 +256,7 @@ async def estimer_valeur_bien(params: AVMParams) -> str:
     liste des comparables utilises, rendement locatif estime.
     """
     try:
-        data = await _post("/avm", params.model_dump())
+        data = await _post("/avm", params.model_dump(), tool_name="estimer_valeur_bien")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -253,7 +275,7 @@ async def predire_evolution_prix(params: PredictionParams) -> str:
     variation estimee a 1 an et 3 ans.
     """
     try:
-        data = await _get("/predict", params.model_dump())
+        data = await _get("/predict", params.model_dump(), tool_name="predire_evolution_prix")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -271,7 +293,7 @@ async def consulter_statistiques_prix(
     repartition par type de bien, tendances.
     """
     try:
-        data = await _get("/prix", {"ville": ville})
+        data = await _get("/prix", {"ville": ville}, tool_name="consulter_statistiques_prix")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -289,7 +311,7 @@ async def rechercher_dpe(params: DPEParams) -> str:
     Retourne : liste de DPE avec classe, consommation kWh/an, emissions CO2, surface.
     """
     try:
-        data = await _get("/dpe", params.model_dump())
+        data = await _get("/dpe", params.model_dump(), tool_name="rechercher_dpe")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -309,7 +331,7 @@ async def detecter_passoires_dpe(params: PassoiresParams) -> str:
     Retourne : liste de passoires avec adresse, classe DPE, surface, source.
     """
     try:
-        data = await _get("/passoires", params.model_dump())
+        data = await _get("/passoires", params.model_dump(), tool_name="detecter_passoires_dpe")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -331,7 +353,7 @@ async def detecter_signaux_offmarket(params: OffMarketParams) -> str:
     Chaque signal recoit un score de 0 a 100.
     """
     try:
-        data = await _get("/off-market", params.model_dump())
+        data = await _get("/off-market", params.model_dump(), tool_name="detecter_signaux_offmarket")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -350,7 +372,7 @@ async def consulter_fiche_parcelle(params: ParcelleParams) -> str:
     Utile pour : due diligence avant achat, evaluation d'un emplacement.
     """
     try:
-        data = await _get("/parcelle", {"lat": params.latitude, "lng": params.longitude})
+        data = await _get("/parcelle", {"lat": params.latitude, "lng": params.longitude}, tool_name="consulter_fiche_parcelle")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -368,7 +390,7 @@ async def evaluer_risques_naturels(params: RisquesParams) -> str:
     Retourne : niveau de risque global, detail par categorie, impact sur le prix.
     """
     try:
-        data = await _get("/risques", {"lat": params.latitude, "lng": params.longitude})
+        data = await _get("/risques", {"lat": params.latitude, "lng": params.longitude}, tool_name="evaluer_risques_naturels")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -388,7 +410,7 @@ async def simuler_financement(params: SimulationParams) -> str:
     capacite d'emprunt max, impact du taux sur le pouvoir d'achat.
     """
     try:
-        data = await _post("/simulation", params.model_dump())
+        data = await _post("/simulation", params.model_dump(), tool_name="simuler_financement")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -408,7 +430,7 @@ async def estimer_cout_renovation(params: RenovationParams) -> str:
     reste a charge, plus-value estimee apres renovation.
     """
     try:
-        data = await _post("/renovation", params.model_dump())
+        data = await _post("/renovation", params.model_dump(), tool_name="estimer_cout_renovation")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -431,7 +453,7 @@ async def lister_biens_portefeuille(
             params["statut"] = statut
         if ville:
             params["ville"] = ville
-        data = await _get("/properties", params)
+        data = await _get("/properties", params, tool_name="lister_biens_portefeuille")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -446,7 +468,7 @@ async def consulter_compte_api() -> str:
     Utile pour verifier les limites restantes avant de lancer des analyses.
     """
     try:
-        data = await _get("/account")
+        data = await _get("/account", tool_name="consulter_compte_api")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -524,7 +546,7 @@ async def creer_bien(params: CreatePropertyParams) -> str:
     IMPORTANT : Cette action cree des donnees. Confirmez les details avec l'utilisateur.
     """
     try:
-        data = await _post("/properties", params.model_dump())
+        data = await _post("/properties", params.model_dump(), tool_name="creer_bien")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -541,9 +563,8 @@ async def modifier_bien(params: UpdatePropertyParams) -> str:
     """
     try:
         payload = {k: v for k, v in params.model_dump().items() if k != 'property_id' and v is not None}
-        r = await _client.patch(f"/properties/{params.property_id}", json=payload)
-        r.raise_for_status()
-        return str(r.json())
+        data = await _patch(f"/properties/{params.property_id}", payload, tool_name="modifier_bien")
+        return str(data)
     except Exception as e:
         return _err(e)
 
@@ -560,9 +581,8 @@ async def supprimer_bien(
     les analyses, estimations et rapports.
     """
     try:
-        r = await _client.delete(f"/properties/{property_id}")
-        r.raise_for_status()
-        return str(r.json())
+        data = await _delete(f"/properties/{property_id}", tool_name="supprimer_bien")
+        return str(data)
     except Exception as e:
         return _err(e)
 
@@ -579,7 +599,7 @@ async def creer_prospect(params: CreateProspectParams) -> str:
     Utile apres avoir detecte un signal off-market ou une passoire DPE interessante.
     """
     try:
-        data = await _post("/prospects", params.model_dump())
+        data = await _post("/prospects", params.model_dump(), tool_name="creer_prospect")
         return str(data)
     except Exception as e:
         return _err(e)
@@ -596,9 +616,8 @@ async def modifier_prospect(params: UpdateProspectParams) -> str:
     """
     try:
         payload = {k: v for k, v in params.model_dump().items() if k != 'prospect_id' and v is not None}
-        r = await _client.patch(f"/prospects/{params.prospect_id}", json=payload)
-        r.raise_for_status()
-        return str(r.json())
+        data = await _patch(f"/prospects/{params.prospect_id}", payload, tool_name="modifier_prospect")
+        return str(data)
     except Exception as e:
         return _err(e)
 
@@ -614,9 +633,8 @@ async def supprimer_prospect(
     ATTENTION : Cette action est irreversible.
     """
     try:
-        r = await _client.delete(f"/prospects/{prospect_id}")
-        r.raise_for_status()
-        return str(r.json())
+        data = await _delete(f"/prospects/{prospect_id}", tool_name="supprimer_prospect")
+        return str(data)
     except Exception as e:
         return _err(e)
 
@@ -631,7 +649,7 @@ async def signaler_bug(params: BugReportParams) -> str:
     Utile pour remonter des problemes detectes pendant l'utilisation.
     """
     try:
-        data = await _post("/bugs", params.model_dump())
+        data = await _post("/bugs", params.model_dump(), tool_name="signaler_bug")
         return str(data)
     except Exception as e:
         return _err(e)
